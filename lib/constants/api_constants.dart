@@ -1,7 +1,7 @@
 // lib/constants/api_constants.dart
 class ApiConstants {
-  static const String baseUrl = 'http://192.168.168.119:8000/api';
-  static const String baseImageUrl = 'http://192.168.168.119:8000/storage/';
+  static const String baseUrl = 'http://192.168.229.119:8000/api';
+  static const String baseImageUrl = 'http://192.168.229.119:8000/storage/';
 
   // Endpoint untuk Autentikasi
   static const String loginEndpoint = '/login';
@@ -27,4 +27,6 @@ class ApiConstants {
   static const String listEndpoint = '/informasi';
   // Endpoint untuk get detail data informasi
   static const String detailEndpoint = '/informasi/{id}';
+
+  static const String checkNewAbsensiEndpoint = '/absensi/check-new';
 }

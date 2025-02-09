@@ -41,29 +41,30 @@ class SlipGaji {
   final int izin;
   final int lembur;
   final String gaji;
+  final String bulan;
 
-  SlipGaji({
-    required this.namaAnggota,
-    required this.namaProfesi,
-    required this.namaRegu,
-    required this.hadir,
-    required this.izin,
-    required this.lembur,
-    required this.gaji,
-  });
+  SlipGaji(
+      {required this.namaAnggota,
+      required this.namaProfesi,
+      required this.namaRegu,
+      required this.hadir,
+      required this.izin,
+      required this.lembur,
+      required this.gaji,
+      required this.bulan});
 
   // Convert JSON ke Model
   factory SlipGaji.fromJson(String str) => SlipGaji.fromMap(json.decode(str));
 
   factory SlipGaji.fromMap(Map<String, dynamic> json) => SlipGaji(
-        namaAnggota: json["nama_anggota"],
-        namaProfesi: json["nama_profesi"],
-        namaRegu: json["nama_regu"],
-        hadir: json["hadir"],
-        izin: json["izin"],
-        lembur: json["lembur"],
-        gaji: json["gaji"],
-      );
+      namaAnggota: json["nama_anggota"],
+      namaProfesi: json["nama_profesi"],
+      namaRegu: json["nama_regu"],
+      hadir: json["hadir"],
+      izin: json["izin"],
+      lembur: json["lembur"],
+      gaji: json["gaji"],
+      bulan: json["bulan"]);
 
   // Convert Model ke JSON
   String toJson() => json.encode(toMap());
@@ -76,5 +77,6 @@ class SlipGaji {
         "izin": izin,
         "lembur": lembur,
         "gaji": gaji,
+        "bulan": bulan,
       };
 }

@@ -1,10 +1,9 @@
 class Anggota {
   final int id;
-  final String nama; // Diubah dari 'name' menjadi 'nama'
+  final String nama;
   final String noTelp;
   final String email;
-  final String?
-      password; // Hanya untuk keperluan update, tidak untuk respons API
+  final String? password; // Hanya untuk update, tidak dikirim dari API
   final int reguId;
   final int profesiId;
   final String createdAt;
@@ -56,20 +55,26 @@ class LoginResponse {
   final String message;
   final String? token;
   final Anggota? anggota;
+  final String? bannedUntil; // Tambahan untuk menangani respons banned
 
   LoginResponse({
     required this.status,
     required this.message,
     this.token,
     this.anggota,
+    this.bannedUntil,
   });
 
   factory LoginResponse.fromJson(Map<String, dynamic> json) {
     return LoginResponse(
       status: json['status'],
       message: json['message'],
-      token: json['data']['token'],
-      anggota: Anggota.fromJson(json['data']['anggota']),
+      token: json['data']?['token'], // Cegah error jika `data` tidak ada
+      anggota: json['data']?['anggota'] != null
+          ? Anggota.fromJson(json['data']['anggota'])
+          : null,
+      bannedUntil:
+          json.containsKey('banned_until') ? json['banned_until'] : null,
     );
   }
 }

@@ -24,11 +24,19 @@ class InformasiListResponse {
 class Informasi {
   final int id;
   final String gambar;
+  final String bawaan;
+  final String kebarangkatan;
+  final String status;
+  final List<String> regus; // Ubah ke List<String> untuk menampung nama regu
   final String createdAt;
 
   Informasi({
     required this.id,
     required this.gambar,
+    required this.bawaan,
+    required this.kebarangkatan,
+    required this.status,
+    required this.regus,
     required this.createdAt,
   });
 
@@ -36,6 +44,12 @@ class Informasi {
     return Informasi(
       id: json['id'],
       gambar: json['gambar'],
+      bawaan: json['bawaan'],
+      kebarangkatan: json['kebarangkatan'],
+      status: json['status'],
+      regus: (json['regus'] as List)
+          .map((regu) => regu.toString())
+          .toList(), // Konversi ke List<String>
       createdAt: json['created_at'],
     );
   }
@@ -67,17 +81,19 @@ class InformasiDetail {
   final String gambar;
   final String bawaan;
   final String kebarangkatan;
+  final String status;
   final String jamSampai; // Gunakan camelCase untuk nama variabel
-  final String regu;
+  final List<String> regus; // Ubah ke List<String> untuk menampung nama regu
   final String createdAt;
 
   InformasiDetail({
     required this.id,
     required this.gambar,
     required this.bawaan,
+    required this.status,
     required this.kebarangkatan,
     required this.jamSampai,
-    required this.regu,
+    required this.regus,
     required this.createdAt,
   });
 
@@ -87,9 +103,12 @@ class InformasiDetail {
       gambar: json['gambar'],
       bawaan: json['bawaan'],
       kebarangkatan: json['kebarangkatan'],
+      status: json['status'],
       jamSampai:
           json['jam_sampai'], // Sesuaikan dengan nama key yang ada di JSON
-      regu: json['regu'],
+      regus: (json['regus'] as List)
+          .map((regu) => regu.toString())
+          .toList(), // Konversi ke List<String>
       createdAt: json['created_at'],
     );
   }

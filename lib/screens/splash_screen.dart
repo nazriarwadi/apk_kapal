@@ -16,27 +16,40 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    // Panggil fungsi untuk cek login status setelah 3 detik
     Future.delayed(const Duration(seconds: 3), () {
       _checkLoginStatus();
     });
   }
 
-  // Fungsi untuk mengecek status login
   Future<void> _checkLoginStatus() async {
     final token = await SharedPrefs.getToken();
+    final isBanned = await SharedPrefs.getIsBanned();
 
     if (token != null) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
-      );
+      if (isBanned) {
+        // Jika akun dibanned, hapus token dan arahkan ke LoginScreen
+        await SharedPrefs.clearAll();
+        _navigateToLogin(banned: true);
+      } else {
+        _navigateToHome();
+      }
     } else {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const LoginScreen()),
-      );
+      _navigateToLogin();
     }
+  }
+
+  void _navigateToHome() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const HomeScreen()),
+    );
+  }
+
+  void _navigateToLogin({bool banned = false}) {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => LoginScreen(banned: banned)),
+    );
   }
 
   @override
@@ -47,20 +60,16 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Gambar Logo
             Image.asset(
-              'assets/images/logo_apk.png', // Pastikan path sesuai dengan lokasi gambar
-              width: 250, // Sesuaikan ukuran logo
+              'assets/images/logo_apk.png',
+              width: 250,
               height: 250,
               fit: BoxFit.contain,
             ),
             const SizedBox(height: 20),
-            // Teks Aplikasi
             Text(
               'Tenaga Kerja Bongkar Muat',
-              style: AppFonts.heading1.copyWith(
-                color: AppColors.textPrimary,
-              ),
+              style: AppFonts.heading1.copyWith(color: AppColors.textPrimary),
             ),
           ],
         ),

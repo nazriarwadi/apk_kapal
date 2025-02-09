@@ -5,6 +5,7 @@ import '../constants/app_fonts.dart';
 import '../models/slip_gaji_response.dart';
 import '../services/api_service.dart';
 import '../services/shared_prefs.dart';
+import '../widgets/loading_indicator.dart'; // Import LoadingIndicator
 
 class SlipGajiScreen extends StatefulWidget {
   const SlipGajiScreen({Key? key}) : super(key: key);
@@ -24,13 +25,18 @@ class _SlipGajiScreenState extends State<SlipGajiScreen> {
   }
 
   Future<void> _loadSlipGaji() async {
-    final token = await SharedPrefs.getToken();
-    if (token != null) {
-      setState(() {
-        _slipGajiFuture = _apiService.getSlipGaji(token);
-      });
-    } else {
-      throw Exception('Token tidak ditemukan');
+    try {
+      final token = await SharedPrefs.getToken();
+      if (token != null) {
+        setState(() {
+          _slipGajiFuture = _apiService.getSlipGaji(token);
+        });
+      } else {
+        throw Exception('Token tidak ditemukan');
+      }
+    } catch (e) {
+      // Menangani error jika terjadi masalah saat mengambil data
+      debugPrint('Error memuat slip gaji: $e');
     }
   }
 
@@ -50,20 +56,22 @@ class _SlipGajiScreenState extends State<SlipGajiScreen> {
         foregroundColor: AppColors.textPrimary,
       ),
       backgroundColor: AppColors.background,
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
+      body: RefreshIndicator(
+        onRefresh: _loadSlipGaji,
         child: FutureBuilder<SlipGajiResponse>(
           future: _slipGajiFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
+              return const LoadingIndicator(); // Menggunakan widget loading
             } else if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
+              return Center(
+                  child: Text('Terjadi kesalahan: ${snapshot.error}'));
             } else if (!snapshot.hasData || snapshot.data!.data.isEmpty) {
               return const Center(child: Text('Tidak ada data slip gaji.'));
             } else {
               final slipGajiList = snapshot.data!.data;
               return ListView.builder(
+                padding: const EdgeInsets.all(16.0),
                 itemCount: slipGajiList.length,
                 itemBuilder: (context, index) {
                   final slip = slipGajiList[index];
@@ -92,39 +100,37 @@ class _SlipGajiScreenState extends State<SlipGajiScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  slip.namaAnggota,
-                  style: AppFonts.heading1,
+                Expanded(
+                  child: Text(
+                    slip.namaAnggota,
+                    style: AppFonts.heading1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-                Text(
-                  formatRupiah(slip.gaji),
-                  style:
-                      AppFonts.heading2.copyWith(color: AppColors.primaryColor),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      formatRupiah(slip.gaji),
+                      style: AppFonts.heading2
+                          .copyWith(color: AppColors.primaryColor),
+                      textAlign: TextAlign.right,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      slip.bulan,
+                      style: AppFonts.bodyText
+                          .copyWith(color: AppColors.textSecondary),
+                      textAlign: TextAlign.right,
+                    ),
+                  ],
                 ),
               ],
             ),
             const SizedBox(height: 8),
-            Row(
-              children: [
-                Icon(Icons.work, size: 16, color: AppColors.secondaryColor),
-                const SizedBox(width: 8),
-                Text(
-                  slip.namaProfesi,
-                  style: AppFonts.bodyText,
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Icon(Icons.group, size: 16, color: AppColors.accentColor),
-                const SizedBox(width: 8),
-                Text(
-                  slip.namaRegu,
-                  style: AppFonts.bodyText,
-                ),
-              ],
-            ),
+            _buildInfoRow(
+                Icons.work, slip.namaProfesi, AppColors.secondaryColor),
+            _buildInfoRow(Icons.group, slip.namaRegu, AppColors.accentColor),
             const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -139,6 +145,25 @@ class _SlipGajiScreenState extends State<SlipGajiScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String text, Color color) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: color),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: AppFonts.bodyText,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
       ),
     );
   }

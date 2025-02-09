@@ -27,12 +27,22 @@ class ApiService {
       // Menangani error dari Dio
       if (e.response != null) {
         final responseData = e.response!.data;
-        if (responseData['message'] == 'Email tidak terdaftar') {
+        final message =
+            responseData['message'] ?? 'Terjadi kesalahan saat login';
+
+        // Cek apakah akun dibanned
+        if (responseData.containsKey('banned_until')) {
+          final bannedUntil = responseData['banned_until'];
+          throw Exception('$message\n$bannedUntil');
+        }
+
+        // Cek berbagai skenario error login
+        if (message == 'Email tidak terdaftar') {
           throw Exception('Email tidak terdaftar');
-        } else if (responseData['message'] == 'Password salah') {
+        } else if (message == 'Password salah') {
           throw Exception('Password salah');
         } else {
-          throw Exception('Terjadi kesalahan saat login');
+          throw Exception(message);
         }
       } else {
         throw Exception('Tidak dapat terhubung ke server');
@@ -88,7 +98,6 @@ class ApiService {
       // Konversi response JSON ke model AttendanceResponse
       return AttendanceResponse.fromJson(response.data);
     } on DioException catch (e) {
-      // Handle error dari Dio
       if (e.response != null) {
         throw Exception('Gagal mengambil data absensi: ${e.response?.data}');
       } else {

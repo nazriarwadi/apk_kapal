@@ -5,10 +5,12 @@ import 'package:kapal_application/constants/app_colors.dart';
 import 'package:kapal_application/constants/app_fonts.dart';
 import 'package:kapal_application/screens/informasi_list_screen.dart';
 import 'package:kapal_application/screens/slip_gaji_screen.dart';
+import 'package:kapal_application/services/shared_prefs.dart';
 import '../services/time_service.dart';
 import '../widgets/bottom_nav_bar.dart';
 import 'anggota_screen.dart';
 import 'attendance_screen.dart';
+import 'notification_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -21,10 +23,12 @@ class _HomeScreenState extends State<HomeScreen> {
   late Timer _timer;
   String currentTime = TimeService.getCurrentTime();
   String currentDate = TimeService.getCurrentDate();
+  String? token;
 
   @override
   void initState() {
     super.initState();
+    _loadToken();
     // Inisialisasi timer untuk memperbarui waktu setiap detik
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() {
@@ -32,6 +36,11 @@ class _HomeScreenState extends State<HomeScreen> {
         currentDate = TimeService.getCurrentDate();
       });
     });
+  }
+
+  Future<void> _loadToken() async {
+    token = await SharedPrefs.getToken();
+    setState(() {});
   }
 
   @override
@@ -83,6 +92,28 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ],
+                ),
+              ),
+              Positioned(
+                top: 40,
+                right: 20, // Menempatkan ikon di pojok kanan atas
+                child: GestureDetector(
+                  onTap: () {
+                    if (token != null) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              NotificationScreen(token: token!),
+                        ),
+                      );
+                    }
+                  },
+                  child: const Icon(
+                    Icons.notifications,
+                    color: Colors.black,
+                    size: 30,
+                  ),
                 ),
               ),
             ],

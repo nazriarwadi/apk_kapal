@@ -4,6 +4,7 @@ import '../constants/app_fonts.dart';
 import '../models/anggota_response.dart';
 import '../services/api_service.dart';
 import '../services/shared_prefs.dart';
+import '../widgets/loading_indicator.dart';
 
 class AnggotaScreen extends StatefulWidget {
   const AnggotaScreen({Key? key}) : super(key: key);
@@ -16,6 +17,7 @@ class _AnggotaScreenState extends State<AnggotaScreen> {
   late Future<AnggotaResponse> _currentAnggotaFuture;
   late Future<AnggotaAllResponse> _allAnggotaFuture;
   final ApiService _apiService = ApiService();
+  String namaRegu = 'Regu Tidak Diketahui'; // Default jika data belum tersedia
 
   @override
   void initState() {
@@ -30,6 +32,14 @@ class _AnggotaScreenState extends State<AnggotaScreen> {
         _currentAnggotaFuture = _apiService.getCurrentAnggota(token);
         _allAnggotaFuture = _apiService.getAllAnggota(token);
       });
+
+      // Ambil nama regu dari daftar anggota lainnya
+      final allAnggota = await _apiService.getAllAnggota(token);
+      if (allAnggota.data.isNotEmpty) {
+        setState(() {
+          namaRegu = allAnggota.data.first.namaRegu;
+        });
+      }
     } else {
       throw Exception('Token tidak ditemukan');
     }
@@ -41,19 +51,19 @@ class _AnggotaScreenState extends State<AnggotaScreen> {
       appBar: AppBar(
         title: const Text('Data Anggota', style: AppFonts.heading2),
         backgroundColor: AppColors.background,
-        elevation: 0,
         foregroundColor: AppColors.textPrimary,
+        elevation: 0,
       ),
       backgroundColor: AppColors.background,
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      body: RefreshIndicator(
+        onRefresh: _loadAnggotaData,
+        child: ListView(
+          padding: const EdgeInsets.all(16.0),
           children: [
-            _buildSectionTitle('Data Anggota Kamu'),
+            _buildSectionTitle('Profil Anda'),
             _buildCurrentAnggota(),
-            const SizedBox(height: 32),
-            _buildSectionTitle('Data Anggota Yang Lainnya'),
+            const SizedBox(height: 24),
+            _buildSectionTitle('Daftar Anggota $namaRegu'),
             _buildAllAnggota(),
           ],
         ),
@@ -68,7 +78,7 @@ class _AnggotaScreenState extends State<AnggotaScreen> {
         title,
         style: AppFonts.heading1.copyWith(
           fontSize: 22,
-          color: AppColors.textSecondary,
+          color: AppColors.textPrimary,
           fontWeight: FontWeight.bold,
         ),
       ),
@@ -80,7 +90,7 @@ class _AnggotaScreenState extends State<AnggotaScreen> {
       future: _currentAnggotaFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: LoadingIndicator());
         } else if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));
         } else if (!snapshot.hasData) {
@@ -99,25 +109,25 @@ class _AnggotaScreenState extends State<AnggotaScreen> {
       future: _allAnggotaFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: LoadingIndicator());
         } else if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));
         } else if (!snapshot.hasData || snapshot.data!.data.isEmpty) {
-          return const Center(child: Text('Tidak ada data anggota'));
+          return const Center(child: Text('Tidak ada anggota lain'));
         } else {
           return GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: MediaQuery.of(context).size.width > 600 ? 3 : 2,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-              childAspectRatio: 1.0,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              childAspectRatio: 0.9,
             ),
             itemCount: snapshot.data!.data.length,
             itemBuilder: (context, index) {
               final anggota = snapshot.data!.data[index];
-              return _buildAnggotaGridItem(
+              return _buildAnggotaCard(
                   anggota.nama, anggota.namaRegu, anggota.namaProfesi);
             },
           );
@@ -128,97 +138,50 @@ class _AnggotaScreenState extends State<AnggotaScreen> {
 
   Widget _buildAnggotaCard(String nama, String regu, String profesi) {
     return Card(
-      elevation: 8,
+      elevation: 5,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(15),
       ),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          gradient: LinearGradient(
-            colors: [Colors.blue.shade50, Colors.blue.shade100],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.blueAccent.withOpacity(0.2),
-              blurRadius: 10,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Icon(Icons.person_outline,
-                size: 40, color: Colors.blueAccent),
-            const SizedBox(height: 12),
-            Text(
-              nama,
-              style: AppFonts.heading2.copyWith(fontSize: 18),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Regu: $regu',
-              style: AppFonts.bodyText.copyWith(color: AppColors.textSecondary),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Profesi: $profesi',
-              style: AppFonts.bodyText.copyWith(fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAnggotaGridItem(String nama, String regu, String profesi) {
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
+      child: Padding(
         padding: const EdgeInsets.all(16.0),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          gradient: LinearGradient(
-            colors: [Colors.blue.shade200, Colors.blue.shade400],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.blueAccent.withOpacity(0.3),
-              blurRadius: 15,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize:
+              MainAxisSize.min, // Menyesuaikan tinggi card sesuai konten
           crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.person, size: 40, color: Colors.white),
+            const Icon(Icons.person, size: 50, color: Colors.blueAccent),
             const SizedBox(height: 12),
-            Text(
-              nama,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+            Flexible(
+              child: Text(
+                nama,
+                style: AppFonts.heading2.copyWith(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+                softWrap: true,
               ),
             ),
             const SizedBox(height: 6),
-            Text('Regu: $regu',
+            Flexible(
+              child: Text(
+                'Regu: $regu',
+                style:
+                    AppFonts.bodyText.copyWith(color: AppColors.textSecondary),
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.white70)),
+                softWrap: true,
+              ),
+            ),
             const SizedBox(height: 4),
-            Text('Profesi: $profesi',
+            Flexible(
+              child: Text(
+                'Profesi: $profesi',
+                style: AppFonts.bodyText.copyWith(fontWeight: FontWeight.w500),
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.white70)),
+                softWrap: true,
+              ),
+            ),
           ],
         ),
       ),

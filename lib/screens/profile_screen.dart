@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:kapal_application/widgets/loading_indicator.dart';
 import '../services/api_service.dart';
 import '../models/auth_models.dart';
 import '../services/shared_prefs.dart';
@@ -57,15 +58,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
             future: _userData,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
+                return const LoadingIndicator();
               } else if (snapshot.hasError) {
                 return Center(child: Text("Error: ${snapshot.error}"));
               } else if (!snapshot.hasData) {
                 return const Center(child: Text("Gagal memuat data pengguna."));
               }
 
-              final anggota =
-                  snapshot.data!.anggota; // Ambil data user dari API
+              final anggota = snapshot.data!.anggota;
 
               return Column(
                 mainAxisAlignment: MainAxisAlignment.center,
