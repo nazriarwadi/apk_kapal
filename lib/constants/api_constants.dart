@@ -1,7 +1,7 @@
 // lib/constants/api_constants.dart
 class ApiConstants {
-  static const String baseUrl = 'http://192.168.229.119:8000/api';
-  static const String baseImageUrl = 'http://192.168.229.119:8000/storage/';
+  static const String baseUrl = 'https://tkbm.akalink.my.id/api';
+  static const String baseImageUrl = 'https://tkbm.akalink.my.id/storage/';
 
   // Endpoint untuk Autentikasi
   static const String loginEndpoint = '/login';
