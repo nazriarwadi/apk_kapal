@@ -154,7 +154,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   _buildMenuItem(
                     imagePath: 'assets/images/anggota.png',
-                    label: 'Anggota',
+                    label: 'Karyawan',
                     onTap: () {
                       Navigator.push(
                         context,

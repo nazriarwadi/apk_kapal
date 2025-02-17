@@ -49,7 +49,7 @@ class _AnggotaScreenState extends State<AnggotaScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Data Anggota', style: AppFonts.heading2),
+        title: const Text('Data Karyawan', style: AppFonts.heading2),
         backgroundColor: AppColors.background,
         foregroundColor: AppColors.textPrimary,
         elevation: 0,
@@ -63,7 +63,7 @@ class _AnggotaScreenState extends State<AnggotaScreen> {
             _buildSectionTitle('Profil Anda'),
             _buildCurrentAnggota(),
             const SizedBox(height: 24),
-            _buildSectionTitle('Daftar Anggota $namaRegu'),
+            _buildSectionTitle('Daftar Karyawan $namaRegu'),
             _buildAllAnggota(),
           ],
         ),
